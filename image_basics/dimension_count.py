@@ -2,61 +2,39 @@ import os
 import pandas as pd
 from PIL import Image
 from path import my_path
-
-# Specify the directory path
-folder_path = os.path.join(my_path, '06192023 SFI renamed')
+from distinct_image_types import distinct_image_types
 
 
-# Get a list of all subdirectories
-subdirectories = [subdir for subdir in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, subdir))]
-
-attribute_names = sorted(set([subdir[5:] for subdir in subdirectories]))
-
-# Extract image types (excluding the patient ID) from subdirectories
-image_types = sorted(set([subdir[5:] for subdir in subdirectories]))
-
-# Create a dictionary to store image type and dimension counts
-count_dict = {}
-
-# Iterate through subdirectories
-for root, subdirs, files in os.walk(folder_path):
-    for file in files:
-        if file.lower().endswith('.jpg'):
-            # Get the image file path
-            image_path = os.path.join(root, file)
+def patient_image_dimension():
+    folder_dimension_list = []
+    for root, dirs, files in os.walk(folder_path):
+        if files:
+            patient = os.path.basename(os.path.dirname(root))  
+            dimensions_set = set()
+            for filename in files:
+                if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    image_file = os.path.join(root, filename)
+                    with Image.open(image_file) as img:
+                        dimensions = img.size
+                        dimensions_set.add(dimensions)
             
-            # Open the image using PIL
-            image = Image.open(image_path)
-            
-            # Get image dimensions (width, height, and channels)
-            width, height = image.size
-            channels = len(image.getbands())
-            
-            # Find the correct image type from the subdirectory
-            image_type = None
-            for subdir in subdirectories:
-                if subdir[5:] in attribute_names and os.path.basename(root) == subdir:
-                    image_type = subdir[5:]
-                    break
-            
-            if image_type:
-                # Create a dimensions tuple
-                dimensions = (width, height, channels)
-                
-                # Increment the count for the dimensions and image type
-                count_dict.setdefault((image_type, dimensions), 0)
-                count_dict[(image_type, dimensions)] += 1
+            folder_dimension_list.extend([(patient[0:4], patient[5:], dimensions) for dimensions in dimensions_set])
 
-# Create a DataFrame from the count_dict
-columns = ['image_type', 'dimension', 'total_count']
-df_counts = pd.DataFrame(columns=columns)
+    df = pd.DataFrame(folder_dimension_list, columns=['patient', 'type', 'dimensions'])
+    df.to_csv(output_csv_path, index=False)
 
-# Populate the DataFrame with counts
-for (image_type, dimensions), count in count_dict.items():
-    df_counts = df_counts.append({'image_type': image_type, 'dimension': dimensions, 'total_count': count}, ignore_index=True)
+def type_dimension_count():
+    data = pd.read_csv(output_csv_path)
+    grouped = data.groupby(['type', 'dimensions']).size().reset_index(name='count')
+    grouped.to_csv(type_outout_path, index=False)
 
-# Write the DataFrame to a CSV file
-counts_csv_path = os.path.join(my_path, 'image_type_dimension_counts.csv')
-df_counts.to_csv(counts_csv_path, index=False)
+def main():
+    # patient_image_dimension()
+    type_dimension_count()
 
-print("Counts CSV written:", counts_csv_path)
+if __name__ == "__main__":
+    folder_path = os.path.join(my_path, '06192023 SFI renamed')
+    output_csv_path = os.path.join(my_path, 'image_basic_data', 'patient_dimensions.csv')
+    type_outout_path = os.path.join(my_path, 'image_basic_data', 'dimensions_count.csv')
+    image_types = distinct_image_types()
+    main()
