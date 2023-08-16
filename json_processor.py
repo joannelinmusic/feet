@@ -68,11 +68,25 @@ def id_result_clean():
                 }, ignore_index=True)
     clean_df.to_csv(output_csv_path_annotations_results, index=False)
 
+def box_rate():
+    box = 0
+    null_box =1
+    df = pd.read_csv(results_raw)
+    for index, row in df.iterrows():
+        if len(ast.literal_eval(row['results']))>0:
+            box += 1
+        else:
+            null_box += 1
+    
+    print('Number of images with bonding boxs:', box)
+    print('Number of images without bonding box:', null_box)
+
 def main():
     # attributes_json()
     # annotations()
     # id_result_box_raw()
-    id_result_clean()
+    # id_result_clean()
+    box_rate()
 
 if __name__ == '__main__':
     file_path = os.path.join(my_path, 'SagIRAnkle2.0.json')
