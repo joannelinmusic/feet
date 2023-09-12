@@ -28,7 +28,7 @@ def crop_the_box():
 
 
                     #save the cropped image
-                    cropped_file_path = os.path.join(my_path, 'bonding_boxes_percent', patient_id, filename[0:14])
+                    cropped_file_path = os.path.join(my_path, 'bonding_boxes_percent_SAGT1', patient_id, filename[0:14])
                     counter = 1
                     while os.path.exists(cropped_file_path + f"_{counter:02}.jpg"):
                         counter += 1
@@ -40,7 +40,7 @@ def bonding_box_folder():
     df = pd.read_csv(csv_path)
     df_patients = df['image'].apply(lambda x: x[0:4]).unique().tolist()
     for patient in df_patients:
-        folder_path = os.path.join(my_path, 'bonding_boxes_percent', patient)
+        folder_path = os.path.join(my_path, 'bonding_boxes_percent_SAGT1', patient)
         os.makedirs(folder_path, exist_ok=True)
 
 def main():
@@ -49,7 +49,7 @@ def main():
     
 
 if __name__ == '__main__':
-    csv_path = os.path.join(my_path, 'json_data', 'sag_IR_json_columns', 'annotations', 'results_box_cleaned_calculation.csv')
+    csv_path = os.path.join(my_path, 'json_data', 'sag_T1_json_columns', 'annotations', 'results_box_cleaned_calculation.csv')
     folder_path = os.path.join(my_path, '06192023 SFI renamed')
     image_path = os.path.join(folder_path, 'P001 SAGIR', 'MRI ANKLE (LEFT) W_O CONT_5891215', 'P001 SAGIR_010.jpg')
 
